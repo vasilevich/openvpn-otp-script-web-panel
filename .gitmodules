@@ -1,0 +1,3 @@
+[submodule "openvpn-scripts"]
+	path = openvpn-scripts
+	url = https://github.com/vasilevich/openvpn-otp-script.git
