@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>User Management System</title>
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.4.3/dist/css/bootstrap.min.css"
+          integrity="sha384-QM8eaZFd/7hPHgeiGxYBIvKSTel0wqU6NqBzHkRBJ/WNdJjC9b40vfh8WlalbC6K" crossorigin="anonymous">
+</head>
+<body>
+<div class="container mt-4">
+
+    <!-- Input and Button for adding user -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <input type="text" class="form-control" id="username" placeholder="Enter username">
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-success" id="add-user-btn">Add</button>
+        </div>
+    </div>
+
+    <!-- Table for displaying users -->
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Username</th>
+            <th>Creation Date</th>
+            <th>Expiration Date</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody id="user-list">
+        </tbody>
+    </table>
+
+</div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.4.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-vhRoSHJ5gAWvRj+XBS4cBp4d4ZZ0JxigCUjLqWW3qS8NmSzeLez2uM9sJ3M1a8Wj"
+        crossorigin="anonymous"></script>
+
+<script>
+
+    // Get user data from backend
+    fetch('/api')
+        .then(response => response.json())
+        .then(data => {
+            let userListHTML = '';
+            data.forEach(user => {
+                userListHTML += `
+                <tr>
+                    <td>${user.name}</td>
+                    <td>${user.begin}</td>
+                    <td>${user.end}</td>
+                    <td>${user.status}</td>
+                    <td>
+                        <button class="btn btn-danger delete-user-btn" data-username="${user.name}">Delete</button>
+                    </td>
+                </tr>
+            `;
+            });
+            document.querySelector('#user-list').innerHTML = userListHTML;
+        });
+
+    // Add user button click handler
+    document.querySelector('#add-user-btn').addEventListener('click', () => {
+        const username = document.querySelector('#username').value;
+        if (username.trim() !== '') {
+            fetch(`/api/${username}`, {method: 'POST'})
+                .then(response => response.text())
+                .then(data => {
+                    const modal = new bootstrap.Modal(document.querySelector('#modal'), {});
+                    document.querySelector('#modal-body').innerHTML = data;
+                    modal.show();
+                });
+        }
+    });
+
+    // Delete user button click handler
+    document.querySelector('#user-list').addEventListener('click', event => {
+        if (event.target.classList.contains('delete-user-btn')) {
+            const username = event.target.getAttribute('data-username');
+            fetch(`/api/${username}`, {method: 'DELETE'})
+                .then(() => event.target.closest('tr').remove());
+        }
+        ;
+    });
+
+</script>
+
+<!-- Bootstrap modal for showing create user command output -->
+<div class="modal fade" id="modal" tabindex="-1" aria-labelledby="modal-label" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-label">Create User Output</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
